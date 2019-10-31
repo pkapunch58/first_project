@@ -1,0 +1,35 @@
+from sqlalchemy import create_engine, MetaData, insert
+from sqlalchemy import Table, Float, Column, Integer, String, Date, ForeignKey, select
+import pandas as pd
+
+engine = create_engine('sqlite:///:memory:', echo=True)
+metadata = MetaData()
+connection = engine.connect()
+
+distributions = Table('distributions', metadata,
+                     Column('isin', String, primary_key=True),
+                     Column('date', Date, primary_key=True),
+                     Column('distribution', Float),
+                     Column('Client_name', String),
+                     Column('currency', String))
+
+markers = Table('markers', metadata,
+                Column('isin', String, primary_key=True),
+                Column('marker', String),
+                Column('Client_name', String),
+                Column('currency', String))
+
+base = Table('base', metadata,
+             Column('isin', String, primary_key=True),
+             Column('date', Date, primary_key=True),
+             Column('tna', Float),
+             Column('Client_name', String),
+             Column('currency', String),
+             Column('nav', Float),
+             Column('shares', Float),)
+metadata.create_all(engine)
+
+distribution_df = pd.read_excel('distribution.xlsx')
+distribution_df = distribution_df.to_dict('list')
+
+result = connection.execute(insert(distributions), distribution_df)
